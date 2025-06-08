@@ -1,95 +1,46 @@
-import React, { useState, useEffect } from "react";
+// src/components/Timer.jsx
+import { useState, useEffect } from "react";
 
-const Timer = ({ initialDuration = 60 }) => {
-  const [timeLeft, setTimeLeft] = useState(initialDuration);
-  const [isActive, setIsActive] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
+const Timer = ({ onSolve }) => {
+  const [time, setTime] = useState(0);
+  const [running, setRunning] = useState(false);
+  const [startTime, setStartTime] = useState(null);
 
   useEffect(() => {
     let interval = null;
-
-    if (isActive && !isPaused && timeLeft > 0) {
+    if (running) {
       interval = setInterval(() => {
-        setTimeLeft((prevTime) => prevTime - 1);
+        setTime(performance.now() - startTime);
+      }, 10);
+    } else if (!running && time !== 0) {
+      clearInterval(interval);
+      onSolve(formatTime(time));
+      setTimeout(() => {
+        setTime(0);
       }, 1000);
-    } else if (timeLeft === 0) {
-      setIsActive(false);
-      onTimerComplete();
     }
-
     return () => clearInterval(interval);
-  }, [isActive, isPaused, timeLeft]);
+  }, [running, startTime]);
 
-  const startTimer = () => {
-    setIsActive(true);
-    setIsPaused(false);
-  };
-
-  const pauseTimer = () => {
-    setIsPaused(true);
-  };
-
-  const resumeTimer = () => {
-    setIsPaused(false);
-  };
-
-  const resetTimer = () => {
-    setIsActive(false);
-    setIsPaused(false);
-    setTimeLeft(initialDuration);
-  };
-
-  const onTimerComplete = () => {
-    // Optional callback when timer reaches zero
-    console.log("Timer completed!");
-  };
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60)
-      .toString()
-      .padStart(2, "0");
-    const secs = (seconds % 60).toString().padStart(2, "0");
-    return `${mins}:${secs}`;
+  const formatTime = (ms) => {
+    const seconds = Math.floor(ms / 1000);
+    const hundredths = Math.floor((ms % 1000) / 10);
+    return `${seconds}.${hundredths.toString().padStart(2, "0")}`;
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-4">
-      <h2 className="text-xl font-semibold mb-4">Countdown Timer</h2>
-      <div className="text-5xl font-mono text-white bg-gray-800 px-6 py-4 rounded-lg shadow-md">
-        {formatTime(timeLeft)}
+    <div className="flex flex-col items-center justify-center w-full h-full">
+      <div className="text-6xl font-mono text-center my-8">
+        {formatTime(time)}
       </div>
 
-      <div className="mt-6 flex gap-3">
-        {!isActive ? (
-          <button
-            onClick={startTimer}
-            className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded"
-          >
-            Start
-          </button>
-        ) : isPaused ? (
-          <button
-            onClick={resumeTimer}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded"
-          >
-            Resume
-          </button>
+      {/* Spacebar Control Indicators */}
+      <div className="text-center">
+        {running ? (
+          <p className="text-xl">Timer Running</p>
         ) : (
-          <button
-            onClick={pauseTimer}
-            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded"
-          >
-            Pause
-          </button>
+          <p className="text-xl">Press Spacebar to Start</p>
         )}
-
-        <button
-          onClick={resetTimer}
-          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded"
-          disabled={!isActive}
-        >
-          Reset
-        </button>
       </div>
     </div>
   );

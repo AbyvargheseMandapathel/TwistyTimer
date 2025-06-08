@@ -2,18 +2,15 @@ import { useState } from "react";
 import Timer from "./components/Timer";
 import ScrambleDisplay from "./components/ScrambleDisplay";
 import SolveHistory from "./components/SolveHistory";
-import CubeVisualization from "./components/CubeVisualization";
-import OLLPLLTrainer from "./components/OLLPLLTrainer";
+import CubeVisualization from "./components/CubeVisualization"; // Use CubeVisualization instead of CubeImage
+import OLLPLLTrainer from "./components/OLLPLLTrainer"; // Added missing import
+import Modal from "./components/Modal"; // New modal component
 
 function App() {
   const [solves, setSolves] = useState([]);
   const [scramble, setScramble] = useState("");
   const [mode, setMode] = useState("timer"); // 'timer' or 'oll_pll'
-
-  // Function to handle new scramble generation
-  const handleNewScramble = (newScramble) => {
-    setScramble(newScramble);
-  };
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleSolve = (time) => {
     setSolves([...solves, time]);
@@ -25,12 +22,14 @@ function App() {
     setSolves(newSolves);
   };
 
+  const handleNewScramble = (newScramble) => {
+    setScramble(newScramble);
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-900 text-white p-2 sm:p-4 md:p-8">
-      <div className="flex flex-col flex-grow w-full max-w-6xl mx-auto">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-center">
-          CSTimer Clone
-        </h1>
+      <div className="max-w-md mx-auto w-full flex-grow flex flex-col items-center justify-center">
+        <h1 className="text-4xl font-bold mb-6 text-center">TwistyCuber</h1>
 
         {/* Mode Toggle */}
         <div className="flex justify-center gap-3 mb-6">
@@ -56,24 +55,36 @@ function App() {
           </button>
         </div>
 
-        <div className="flex flex-col flex-grow overflow-hidden">
+        <div className="w-full overflow-x-hidden">
           {mode === "timer" && (
             <>
               <ScrambleDisplay onNewScramble={handleNewScramble} />
 
-              {/* Make cube visualization flex-grow to fill */}
-              <div className="flex-grow my-4 min-h-[320px] sm:min-h-[400px] w-full">
+              {/* Cube Visualization in Bottom-Right Corner */}
+              <div
+                className="fixed bottom-4 right-4 z-10 cursor-pointer"
+                onClick={() => setIsModalOpen(true)}
+              >
                 <CubeVisualization scramble={scramble} />
               </div>
 
+              {/* Timer Component */}
               <Timer onSolve={handleSolve} />
 
+              {/* Solve History */}
               <SolveHistory solves={solves} onDelete={handleDelete} />
             </>
           )}
 
           {mode === "oll_pll" && <OLLPLLTrainer />}
         </div>
+
+        {/* Modal for Full-Screen Cube View */}
+        {isModalOpen && (
+          <Modal onClose={() => setIsModalOpen(false)}>
+            <CubeVisualization scramble={scramble} />
+          </Modal>
+        )}
       </div>
     </div>
   );
